@@ -105,6 +105,7 @@ class Array_parser(object):
         self.alpha = []
         self.pattern = re.compile(r'[\+|\-]?\d+[\d\.\-\+e]+')
         self.line = None
+        self.sv_num = self.sv_dm = 0
     def parse_int(self):
         if self.line.startswith(self.keywords[0]):
             self.var_count = int(self.line.split(':')[-1].strip())
@@ -112,18 +113,23 @@ class Array_parser(object):
             self.sv_total = int(self.line.split(':')[-1].strip())
         elif self.line.startswith(self.keywords[3]):
             self.rho = float(self.line.split(':')[-1].strip())
-    def parse_array(self, flag):
+    def parse_array(self):
         ls = self.pattern.findall(self.line)
         if ls:
-            if flag == 1:
-                self.support_vectors += map((lambda x: float(x)), ls)
-            elif flag == 2:
-                self.alpha += map((lambda x: float(x)), ls)
-        return flag
+            self.support_vectors += map((lambda x: float(x)), ls)
+            self.sv_num -= len(ls)
+        return True
+    def parse_alpha(self):
+        ls = self.pattern.findall(self.line)
+        if ls:
+            self.alpha += map((lambda x: float(x)), ls)
+            self.sv_dm -= len(ls)
+        return True
     @staticmethod
     def run(fn):
         parser = Array_parser()
-        flag = 0
+        print parser.__doc__
+        flag = False
         with open(fn) as f:
             while True:
                 line = f.readline()
@@ -134,26 +140,29 @@ class Array_parser(object):
                         line.startswith(parser.keywords[1]) or \
                         line.startswith(parser.keywords[3]):
                     parser.parse_int()
-                elif flag == 1 or \
-                        line.startswith(parser.keywords[2]):
-                    flag = parser.parse_array(1)
-                elif flag == 2 or \
-                        line.startswith(parser.keywords[4]):
-                    flag = parser.parse_array(2)
-                if (not line.startswith(parser.keywords[2])) and \
-                        (not line.startswith(parser.keywords[4])) and \
-                        re.search(r'^[a-zA-Z]+', line):
-                    flag = 0
-        parser.support_vectors = np.array(parser.support_vectors)
+                elif line.startswith(parser.keywords[2]):
+                    parser.sv_num = parser.sv_total*parser.var_count
+                elif parser.sv_num:
+                    parser.parse_array()
+                elif line.startswith(parser.keywords[4]):
+                    parser.sv_dm = parser.sv_total
+                    parser.parse_alpha()
+                elif parser.sv_dm:
+                    parser.parse_alpha()
+        parser.support_vectors = np.array(parser.support_vectors).reshape((parser.sv_total, -1))
         parser.alpha = np.array(parser.alpha)
-        #parser.alpha.shape = 527,-1
-        print parser.support_vectors.shape, parser.alpha.shape
         res = parser.var_count, parser.sv_total, \
               parser.support_vectors,\
               parser.rho, \
               parser.alpha
         return dict(zip(parser.keywords, res))
 
+def save_detector(fn, dn='cz_detector'):
+    sv = Array_parser.run(fn)
+    rs = np.dot(sv.get('alpha'),sv.get('support_vectors'))
+    rs = np.append(rs, np.array([sv.get('rho')]), 0).reshape((-1, 1))
+    np.save(dn, rs)
+    return dn
 
 if __name__ == '__main__':
     src_dir = r'C:\Users\Calvin\Desktop\temp'
@@ -182,6 +191,6 @@ if __name__ == '__main__':
     fn = 'pedestrians.yml'
     #get_array(fn)
 
-    print Array_parser.run(fn)
+    #print save_detector(fn)
 
     cv2.waitKey()

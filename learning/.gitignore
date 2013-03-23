@@ -1,3 +1,5 @@
 *.yml
 *.pyc
 *.yaml
+*.npy
+*.npz
