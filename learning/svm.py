@@ -93,10 +93,22 @@ class Best_Params(object):
 
 if __name__ == '__main__':
     print __doc__
-    ped_pos = get_images(PEDESTRIANS[0])
-    ped_neg = get_images(PEDESTRIANS[1])
-    car_pos = get_images(CARS[2])
-    car_neg = get_images(CARS[3])
+    ped_pos = (
+        get_images(PEDESTRIANS[0]),
+        get_images(PEDESTRIANS[2]),
+    )
+    ped_neg = (
+        get_images(PEDESTRIANS[1]),
+        get_images(PEDESTRIANS[3]),
+    )
+    car_pos = (
+        get_images(CARS[0]),
+        get_images(CARS[2])
+    )
+    car_neg = (
+        get_images(CARS[1]),
+        get_images(CARS[3])
+    )
     fn = [ PEDESTRIANS_FN, CARS_FN ]
     svm = SVM( kernel_type = cv2.SVM_LINEAR,    # cv2.SVM_RBF cv2.SVM_POLY cv2.SVM_SIGMOID
                svm_type = cv2.SVM_C_SVC,
@@ -113,8 +125,8 @@ if __name__ == '__main__':
     # train(model, feature, fn, pos, neg)
     # test(model, feature, fn, pos=None, neg=None)
 
-    execute(train, svm, hog, fn[0], ped_pos, ped_neg)
-    #execute(test, SVM(), hog, fn[1], car_pos, car_neg)
+    #execute(train, svm, hog, fn[0], ped_pos[0], ped_neg[0])
+    execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
 
     #best = Best_Params(ped_pos, ped_neg, hog)
     #best.adjust_SVM()

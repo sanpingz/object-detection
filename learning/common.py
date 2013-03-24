@@ -146,28 +146,17 @@ class HOG(Feature):
                               ((params['_winSize'][1]-params['_blockSize'][1])/params['_blockStride'][1]+1)* \
                               params['_blockSize'][0]*params['_blockSize'][1]/(params['_cellSize'][0]*params['_cellSize'][1])*params['_nbins']
     def process(self, samples, size=None):
-        res = np.empty((len(samples), self.num), np.float32)
-        num = 0
+        res = []
         for img in samples:
             im = get_mat(img, size=size)
             rs = self.hog.compute(im)
-            res[num, :] = rs.reshape(1,-1)
-            num += 1
-        return res
-
-
-def responses(pos, neg):
-    pos_num = len(pos)
-    neg_num = len(neg)
-    total = pos_num + neg_num
-    labels = np.ones(total, np.int32)
-    labels[pos_num:] = np.zeros(neg_num)
-    return labels
+            res.append(rs.ravel())
+        return np.float32(res)
 
 
 def preprocess(pos, neg, feature):
     samples = feature.process(pos+neg)
-    labels = responses(pos, neg)
+    labels = np.append(np.ones(len(pos), np.int32), np.zeros(len(neg), np.int32))
     shuffle = np.random.permutation(len(samples))
     return samples[shuffle], labels[shuffle]
 
@@ -216,3 +205,6 @@ def cross_validate(model_class, params, samples, labels, kfold = 3, pool = None)
     else:
         scores = pool.map(f, xrange(kfold))
     return np.mean(scores)
+
+def detectMultiScale(img, found_locations, hit_threshold, win_stride, padding=(32,32), scale=1.05, group_threshold=2): pass
+

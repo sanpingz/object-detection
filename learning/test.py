@@ -165,12 +165,12 @@ def save_detector(fn, dn='cz_detector'):
     return dn
 
 if __name__ == '__main__':
-    src_dir = r'C:\Users\Calvin\Desktop\temp'
-    dst_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\negative-128x128'
-    size = (128, 128)
+    src_dir = r'E:\FavoriteVideo\Images\Original'
+    dst_dir = r'E:\FavoriteVideo\Images\org-800x600'
+    size = (800, 600)
     fmt = 'jpg'
-    name = 'frame'
-    #resize_scale(src_dir, dst_dir, size, fmt, name, start=907)
+    name = 'ssd'
+    #resize_scale(src_dir, dst_dir, size, fmt, name, start=1)
 
     #cut_image('street_0001.jpg', 'street_0002.jpg', 0 , 0, (128,128))
 
@@ -183,8 +183,8 @@ if __name__ == '__main__':
     fmt = 'png'
     #rand_cut(src_dir, dst_dir, name, fmt)
 
-    #src = get_images(r'C:\Users\Calvin\Desktop\new')
-    #dst = r'C:\Users\Calvin\Desktop\temp'
+    src = get_images(r'E:\FavoriteVideo\Images\org-800x600')
+    dst = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\postive'
     #FastCut(src, (128,128), dst=dst).run()
 
     #print yaml_adapter('pedestrians.yml')
@@ -192,5 +192,6 @@ if __name__ == '__main__':
     #get_array(fn)
 
     #print save_detector(fn)
+
 
     cv2.waitKey()
