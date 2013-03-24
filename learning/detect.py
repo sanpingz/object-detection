@@ -18,8 +18,8 @@ def inside(r, q):
     qx, qy, qw, qh = q
     return rx > qx and ry > qy and rx + rw < qx + qw and ry + rh < qy + qh
 
-def draw_detections(img, rect, thickness=1):
-    for x, y, w, h in rect:
+def draw_detections(img, rects, thickness=1):
+    for x, y, w, h in rects:
         # the HOG detector returns slightly larger rectangles than the real objects.
         # so we slightly shrink the rectangles to get a nicer output.
         pad_w, pad_h = int(0.15*w), int(0.05*h)

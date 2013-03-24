@@ -206,5 +206,5 @@ def cross_validate(model_class, params, samples, labels, kfold = 3, pool = None)
         scores = pool.map(f, xrange(kfold))
     return np.mean(scores)
 
-def detectMultiScale(img, found_locations, hit_threshold, win_stride, padding=(32,32), scale=1.05, group_threshold=2): pass
+def detectMultiScale(img, found_locations, hit_threshold, win_stride=(8,8), padding=(32,32), scale=1.05, group_threshold=2): pass
 
