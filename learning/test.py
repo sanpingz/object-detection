@@ -193,5 +193,11 @@ if __name__ == '__main__':
 
     #print save_detector(fn)
 
+    im = cv2.imread(r'temp\crop001658.png', 0),cv2.imread(r'temp\00001222.png', 0), cv2.imread(r'temp\ssd_0026.jpg',0)
+    svm = SVM()
+    svm.load(fn)
+    hog = HOG(_winSize=(64,128))
+
+    print Detector(svm, hog).detect(im[1])
 
     cv2.waitKey()

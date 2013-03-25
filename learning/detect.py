@@ -37,10 +37,9 @@ if __name__ == '__main__':
     cz = np.load('cz_detector.npy')
     detector = cv2.HOGDescriptor_getDefaultPeopleDetector(), cz
 
-    print detector
     hog.setSVMDetector( detector[0] )
-    tmp = get_images(PEDESTRIANS[0])[10]
-    sys.argv = ['detect', 'dct.jpg', 'frame0031.png', tmp]
+    tmp = r'temp\00001222.png', r'temp\crop001658.png', r'temp\ssd_0026.jpg'
+    sys.argv = ['detect',tmp[2]]
 
     for fn in it.chain(*map(glob, sys.argv[1:])):
         print fn, ' - ',

@@ -141,14 +141,24 @@ class HOG(Feature):
     cv2.HOGDescriptor((128,64), (16,16), (8,8), (8,8), 9)
     hog_num: ((64-16)/8+1)*((128-16)/8+1)*9*4"""
     def __init__(self, **params):
+        self.default_params = dict(
+            #_winSize = (64,128),
+            _blockSize = (16,16),
+            _blockStride = (8,8),
+            _cellSize = (8,8),
+            _nbins = 9
+        )
+        params.update(self.default_params)
         self.hog = cv2.HOGDescriptor(**params)
-        self.num = params and ((params['_winSize'][0]-params['_blockSize'][0])/params['_blockStride'][0]+1)* \
-                              ((params['_winSize'][1]-params['_blockSize'][1])/params['_blockStride'][1]+1)* \
-                              params['_blockSize'][0]*params['_blockSize'][1]/(params['_cellSize'][0]*params['_cellSize'][1])*params['_nbins']
+        self.winSize = params.get('_winSize')
+        assert self.winSize, '_winSize is required'
+        self.num = ((params['_winSize'][0]-params['_blockSize'][0])/params['_blockStride'][0]+1)* \
+                   ((params['_winSize'][1]-params['_blockSize'][1])/params['_blockStride'][1]+1)* \
+                   params['_blockSize'][0]*params['_blockSize'][1]/(params['_cellSize'][0]*params['_cellSize'][1])*params['_nbins']
     def process(self, samples, size=None):
         res = []
         for img in samples:
-            im = get_mat(img, size=size)
+            im = cv2.imread(img, 0) if isinstance(img, str) else img
             rs = self.hog.compute(im)
             res.append(rs.ravel())
         return np.float32(res)
@@ -206,5 +216,27 @@ def cross_validate(model_class, params, samples, labels, kfold = 3, pool = None)
         scores = pool.map(f, xrange(kfold))
     return np.mean(scores)
 
-def detectMultiScale(img, found_locations, hit_threshold, win_stride=(8,8), padding=(32,32), scale=1.05, group_threshold=2): pass
+
+class Detector(object):
+    """Multi-scale object"""
+    def __init__(self, model, feature):
+        self.model = model
+        self.feature = feature
+        self.winSize = feature.winSize
+    @timer
+    def detect(self, img, win_stride=(8,8)):
+        samples = []
+        H, W = img.shape
+        w, h = self.winSize
+        assert W > w or H > h, 'detect window is too small'
+        for y in xrange(0,H+1-h,win_stride[1]):
+            for x in xrange(0,W+1-w,win_stride[0]):
+                samples.append(img[y:y+h, x:x+w])
+        resp = self.model.predict(self.feature.process(samples))
+        print resp.sum(0).sum(0), len(samples)
+        return reduce(lambda x,y: x or y, resp)
+    def detectMultiScale(self, img):
+        locations = []
+
+def detectMultiScale(img, found_locations, hit_threshold=0, win_stride=(8,8), padding=(32,32), scale=1.05, group_threshold=2): pass
 
