@@ -28,18 +28,15 @@ def remap(src_dir, dst_dir, shape, name, fmt):
     no = 1
     map_x = np.zeros(shape, np.float32)
     map_y = np.zeros(shape, np.float32)
-    for y in range(shape[1]):
-        for x in range(shape[0]):
-            map_x[x,y] = shape[0]-1-x
-            map_y[x,y] = y
-    print map_x
+    for x in range(shape[1]):
+        for y in range(shape[0]):
+            map_x[y,x] = shape[1]-1-x
+            map_y[y,x] = y
     for img in os.listdir(src_dir):
         fo = join(src_dir, img)
         fn = '%s\%s_%04d.mirror.%s' % (dst_dir, name, no, fmt)
         im = cv2.remap(cv2.imread(fo), map_x, map_y, interpolation=cv2.INTER_AREA)
         cv2.imwrite(fn, im)
-        exit()
-
 
 
 class FastCut():
@@ -182,26 +179,26 @@ def save_detector(fn, dn='cz_detector'):
     return dn
 
 if __name__ == '__main__':
-    src_dir = r'E:\FavoriteVideo\Images\Original'
-    dst_dir = r'E:\FavoriteVideo\Images\org-800x600'
-    size = (800, 600)
-    fmt = 'jpg'
-    name = 'ssd'
+    # src_dir = r'E:\FavoriteVideo\Images\Original'
+    # dst_dir = r'E:\FavoriteVideo\Images\org-800x600'
+    # size = (800, 600)
+    # fmt = 'jpg'
+    # name = 'ssd'
     #resize_scale(src_dir, dst_dir, size, fmt, name, start=1)
 
     #cut_image('street_0001.jpg', 'street_0002.jpg', 0 , 0, (128,128))
 
-    src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\test\positive-128x128'
+    # src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\test\positive-128x128'
     #cuts(src_dir, (128,128))
 
-    src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\CVC-Virtual-Pedestrian\negative-171x128'
-    dst_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\CVC-Virtual-Pedestrian\negative-64x128'
-    name = 'background'
-    fmt = 'png'
+    # src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\CVC-Virtual-Pedestrian\negative-171x128'
+    # dst_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\CVC-Virtual-Pedestrian\negative-64x128'
+    # name = 'background'
+    # fmt = 'png'
     #rand_cut(src_dir, dst_dir, name, fmt)
 
-    src = get_images(r'E:\FavoriteVideo\Images\org-800x600')
-    dst = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\postive'
+    # src = get_images(r'E:\FavoriteVideo\Images\org-800x600')
+    # dst = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\postive'
     #FastCut(src, (128,128), dst=dst).run()
 
     #print yaml_adapter('pedestrians.yml')
@@ -217,8 +214,8 @@ if __name__ == '__main__':
     #
     # print Detector(svm, hog).detect(im[1])
 
-    src_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'
-    dst_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\mirror'
-    remap(src_dir, dst_dir, (128,128), 'frame', 'jpg')
+    src_dir=r'C:\Users\Calvin\Desktop\temp'
+    dst_dir=r'C:\Users\Calvin\Desktop\new'
+    remap(src_dir, dst_dir, (128,128), 'frame', 'png')
 
     cv2.waitKey()

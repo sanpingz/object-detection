@@ -126,10 +126,10 @@ if __name__ == '__main__':
     # test(model, feature, fn, pos=None, neg=None)
 
     #execute(train, svm, hog, fn[0], ped_pos[0], ped_neg[0])
-    #execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
+    execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
 
-    best = Best_Params(ped_pos[0], ped_neg[0], hog)
-    best.adjust_SVM()
+    # best = Best_Params(ped_pos[0], ped_neg[0], hog)
+    # best.adjust_SVM()
 
     cv2.waitKey()
     cv2.destroyAllWindows()
