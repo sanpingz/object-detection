@@ -24,6 +24,23 @@ def rand_cut(src_dir, dst_dir, name, fmt):
             cut_image(fo, fn, 0, x2, (128,64))
             no += 1
 
+def remap(src_dir, dst_dir, shape, name, fmt):
+    no = 1
+    map_x = np.zeros(shape, np.float32)
+    map_y = np.zeros(shape, np.float32)
+    for y in range(shape[1]):
+        for x in range(shape[0]):
+            map_x[x,y] = shape[0]-1-x
+            map_y[x,y] = y
+    print map_x
+    for img in os.listdir(src_dir):
+        fo = join(src_dir, img)
+        fn = '%s\%s_%04d.mirror.%s' % (dst_dir, name, no, fmt)
+        im = cv2.remap(cv2.imread(fo), map_x, map_y, interpolation=cv2.INTER_AREA)
+        cv2.imwrite(fn, im)
+        exit()
+
+
 
 class FastCut():
     def __init__(self, samples, scale, dst=None, name='frame'):
@@ -193,11 +210,15 @@ if __name__ == '__main__':
 
     #print save_detector(fn)
 
-    im = cv2.imread(r'temp\crop001658.png', 0),cv2.imread(r'temp\00001222.png', 0), cv2.imread(r'temp\ssd_0026.jpg',0)
-    svm = SVM()
-    svm.load(fn)
-    hog = HOG(_winSize=(64,128))
+    # im = cv2.imread(r'temp\crop001658.png', 0),cv2.imread(r'temp\00001222.png', 0), cv2.imread(r'temp\ssd_0026.jpg',0)
+    # svm = SVM()
+    # svm.load(fn)
+    # hog = HOG(_winSize=(64,128))
+    #
+    # print Detector(svm, hog).detect(im[1])
 
-    print Detector(svm, hog).detect(im[1])
+    src_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'
+    dst_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\mirror'
+    remap(src_dir, dst_dir, (128,128), 'frame', 'jpg')
 
     cv2.waitKey()

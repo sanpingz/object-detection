@@ -112,8 +112,8 @@ if __name__ == '__main__':
     fn = [ PEDESTRIANS_FN, CARS_FN ]
     svm = SVM( kernel_type = cv2.SVM_LINEAR,    # cv2.SVM_RBF cv2.SVM_POLY cv2.SVM_SIGMOID
                svm_type = cv2.SVM_C_SVC,
-               C = 5,
-               gamma = 1
+               C = 4.416358,
+               gamma = 0.0078125
     )
     hog = HOG( _winSize = (64,128),    # (128, 128), (64, 128)
                _blockSize = (16,16),
@@ -125,11 +125,11 @@ if __name__ == '__main__':
     # train(model, feature, fn, pos, neg)
     # test(model, feature, fn, pos=None, neg=None)
 
-    execute(train, svm, hog, fn[0], ped_pos[0], ped_neg[0])
-    execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
+    #execute(train, svm, hog, fn[0], ped_pos[0], ped_neg[0])
+    #execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
 
-    #best = Best_Params(ped_pos, ped_neg, hog)
-    #best.adjust_SVM()
+    best = Best_Params(ped_pos[0], ped_neg[0], hog)
+    best.adjust_SVM()
 
     cv2.waitKey()
     cv2.destroyAllWindows()
