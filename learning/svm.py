@@ -62,7 +62,7 @@ class Best_Params(object):
         return pool.imap_unordered(f, jobs)
 
     @timer
-    def adjust_SVM(self):
+    def adjust_SVM(self, fn):
         Cs = np.logspace(0, 10, 15, base=2)
         gammas = np.logspace(-7, 4, 15, base=2)
         scores = np.zeros((len(Cs), len(gammas)))
@@ -82,8 +82,8 @@ class Best_Params(object):
             print '%d / %d (best error: %.2f %%, last: %.2f %%)' % (count+1, scores.size, np.nanmin(scores)*100, score*100)
         print scores
 
-        print 'writing score table to "%s"' % SVM_SCORES_FN
-        np.savez(SVM_SCORES_FN, scores=scores, Cs=Cs, gammas=gammas)
+        print 'writing score table to "%s"' % fn
+        np.savez(fn, scores=scores, Cs=Cs, gammas=gammas)
 
         i, j = np.unravel_index(scores.argmin(), scores.shape)
         best_params = dict(C = Cs[i], gamma=gammas[j])
@@ -115,7 +115,7 @@ if __name__ == '__main__':
                C = 4.416358,
                gamma = 0.0078125
     )
-    hog = HOG( _winSize = (64,128),    # (128, 128), (64, 128)
+    hog = HOG( _winSize = (128,128),    # (128, 128), (64, 128)
                _blockSize = (16,16),
                _blockStride = (8,8),
                _cellSize = (8,8),
@@ -125,11 +125,14 @@ if __name__ == '__main__':
     # train(model, feature, fn, pos, neg)
     # test(model, feature, fn, pos=None, neg=None)
 
-    #execute(train, svm, hog, fn[0], ped_pos[0], ped_neg[0])
-    execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
+    # execute(train, svm, hog, fn[0], ped_pos[0], ped_neg[0])
+    # execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
 
-    # best = Best_Params(ped_pos[0], ped_neg[0], hog)
-    # best.adjust_SVM()
+    execute(train, svm, hog, fn[1], car_pos[0], car_neg[0])
+    execute(test, SVM(), hog, fn[1], car_pos[1], car_neg[1])
+
+    # best = Best_Params(car_pos[0], car_neg[0], hog)
+    # best.adjust_SVM(CAR_SCORES_FN)
 
     cv2.waitKey()
     cv2.destroyAllWindows()

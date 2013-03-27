@@ -14,8 +14,7 @@ CARS = map(lambda x: join(CARS_BASE, x),
         r'CZ\positive-128x128',
         r'CZ\negative-128x128',
         r'CBCL-positive-128x128',
-        r'CZ\negative-web-128x128',
-        r'CZ\positive-web-192x128'
+        r'CZ\negative-web-128x128'
     ]
 )
 
@@ -30,4 +29,5 @@ PEDESTRIANS = map(lambda x: join(PEDESTRIANS_BASE, x),
 
 CARS_FN = r'cars.yml'
 PEDESTRIANS_FN = r'pedestrians.yml'
-SVM_SCORES_FN = r'svm_scores.npz'
+PED_SCORES_FN = r'ped_scores.npz'
+CAR_SCORES_FN = r'car_scores.npz'

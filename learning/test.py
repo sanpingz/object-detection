@@ -35,6 +35,7 @@ def remap(src_dir, dst_dir, shape, name, fmt):
     for img in os.listdir(src_dir):
         fo = join(src_dir, img)
         fn = '%s\%s_%04d.mirror.%s' % (dst_dir, name, no, fmt)
+        no += 1
         im = cv2.remap(cv2.imread(fo), map_x, map_y, interpolation=cv2.INTER_AREA)
         cv2.imwrite(fn, im)
 
@@ -214,8 +215,8 @@ if __name__ == '__main__':
     #
     # print Detector(svm, hog).detect(im[1])
 
-    src_dir=r'C:\Users\Calvin\Desktop\temp'
-    dst_dir=r'C:\Users\Calvin\Desktop\new'
-    remap(src_dir, dst_dir, (128,128), 'frame', 'png')
+    # src_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'
+    # dst_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'
+    # remap(src_dir, dst_dir, (128,128), 'frame', 'jpg')
 
     cv2.waitKey()
