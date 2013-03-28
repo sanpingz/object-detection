@@ -119,7 +119,13 @@ if __name__ == '__main__':
                _blockSize = (16,16),
                _blockStride = (8,8),
                _cellSize = (8,8),
-               _nbins = 9
+               _nbins = 9,
+               _derivAperture = 1,
+               _winSigma = -1,
+               _histogramNormType = cv2.HOGDESCRIPTOR_L2HYS,
+               _L2HysThreshold = 0.2,
+               _gammaCorrection = False,
+               _nlevels = cv2.HOGDESCRIPTOR_DEFAULT_NLEVELS
     )
 
     # train(model, feature, fn, pos, neg)
