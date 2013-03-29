@@ -146,7 +146,13 @@ class HOG(Feature):
             _blockSize = (16,16),
             _blockStride = (8,8),
             _cellSize = (8,8),
-            _nbins = 9
+            _nbins = 9,
+            _derivAperture = 1,
+            _winSigma = -1,
+            _histogramNormType = cv2.HOGDESCRIPTOR_L2HYS,
+            _L2HysThreshold = 0.2,
+            _gammaCorrection = False,
+            _nlevels = cv2.HOGDESCRIPTOR_DEFAULT_NLEVELS
         )
         params.update(self.default_params)
         self.hog = cv2.HOGDescriptor(**params)
@@ -159,6 +165,7 @@ class HOG(Feature):
         res = []
         for img in samples:
             im = cv2.imread(img, 0) if isinstance(img, str) else img
+            print im.shape
             rs = self.hog.compute(im)
             res.append(rs.ravel())
         return np.float32(res)
@@ -223,6 +230,7 @@ class Detector(object):
         self.model = model
         self.feature = feature
         self.winSize = feature.winSize
+
     @timer
     def detect(self, img, win_stride=(8,8)):
         samples = []

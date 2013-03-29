@@ -96,10 +96,12 @@ if __name__ == '__main__':
     ped_pos = (
         get_images(PEDESTRIANS[0]),
         get_images(PEDESTRIANS[2]),
+        get_images(PEDESTRIANS[4]),
     )
     ped_neg = (
         get_images(PEDESTRIANS[1]),
         get_images(PEDESTRIANS[3]),
+        get_images(PEDESTRIANS[5]),
     )
     car_pos = (
         get_images(CARS[0]),
@@ -115,17 +117,11 @@ if __name__ == '__main__':
                C = 4.416358,
                gamma = 0.0078125
     )
-    hog = HOG( _winSize = (128,128),    # (128, 128), (64, 128)
+    hog = HOG( _winSize = (64,128),    # (128, 128), (64, 128)
                _blockSize = (16,16),
                _blockStride = (8,8),
                _cellSize = (8,8),
-               _nbins = 9,
-               _derivAperture = 1,
-               _winSigma = -1,
-               _histogramNormType = cv2.HOGDESCRIPTOR_L2HYS,
-               _L2HysThreshold = 0.2,
-               _gammaCorrection = False,
-               _nlevels = cv2.HOGDESCRIPTOR_DEFAULT_NLEVELS
+               _nbins = 9
     )
 
     # train(model, feature, fn, pos, neg)
@@ -134,8 +130,8 @@ if __name__ == '__main__':
     # execute(train, svm, hog, fn[0], ped_pos[0], ped_neg[0])
     # execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
 
-    execute(train, svm, hog, fn[1], car_pos[0], car_neg[0])
-    execute(test, SVM(), hog, fn[1], car_pos[1], car_neg[1])
+    execute(train, svm, hog, fn[1], ped_pos[2], ped_neg[2])
+    #execute(test, SVM(), hog, fn[1], ped_pos[0], ped_neg[0])
 
     # best = Best_Params(car_pos[0], car_neg[0], hog)
     # best.adjust_SVM(CAR_SCORES_FN)

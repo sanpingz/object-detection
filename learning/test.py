@@ -2,7 +2,6 @@
 __author__ = 'Calvin'
 
 from common import *
-from random import randint
 
 def cuts(src_dir, size):
     for img in os.listdir(src_dir):
@@ -10,19 +9,22 @@ def cuts(src_dir, size):
         cut_image(name, name, 0, 0, size)
 
 
-def rand_cut(src_dir, dst_dir, name, fmt):
-    no = 1
+def rand_cut(src_dir, dst_dir, name, fmt, scale, size=10):
+    no = 0
+    def rant_pair(scale, num=size):
+        x0 = np.random.randint(scale[1], size=num)
+        y0 = np.random.randint(scale[0], size=num)
+        return list(zip(x0,y0))
+    def minus(t1,t2):
+        return abs(t1[0]-t2[0]), abs(t1[1]-t2[1])
     for img in os.listdir(src_dir):
-        x1 = randint(0,106)
         fo = join(src_dir, img)
-        fn = '%s\%s_%04d.%s' % (dst_dir, name, no, fmt)
-        cut_image(fo, fn, 0, x1, (128,64))
         no += 1
-        if x1+64 < 106:
-            x2 = randint(x1+65, 106)
+        for x1,y1 in rant_pair(minus(cv2.imread(fo,0).shape, scale), num=size):
             fn = '%s\%s_%04d.%s' % (dst_dir, name, no, fmt)
-            cut_image(fo, fn, 0, x2, (128,64))
+            cut_image(fo, fn, x1, y1, scale)
             no += 1
+
 
 def remap(src_dir, dst_dir, shape, name, fmt):
     no = 1
@@ -192,23 +194,23 @@ if __name__ == '__main__':
     # src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\test\positive-128x128'
     #cuts(src_dir, (128,128))
 
-    # src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\CVC-Virtual-Pedestrian\negative-171x128'
-    # dst_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\CVC-Virtual-Pedestrian\negative-64x128'
-    # name = 'background'
-    # fmt = 'png'
-    #rand_cut(src_dir, dst_dir, name, fmt)
+    src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\negative'
+    dst_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\negative-96x160'
+    name = 'neg'
+    fmt = 'png'
+    rand_cut(src_dir, dst_dir, name, fmt, (160,96))
 
     # src = get_images(r'E:\FavoriteVideo\Images\org-800x600')
     # dst = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\postive'
-    #FastCut(src, (128,128), dst=dst).run()
+    # FastCut(src, (128,128), dst=dst).run()
 
     #print yaml_adapter('pedestrians.yml')
-    fn = 'pedestrians.yml'
+    # fn = 'pedestrians.yml'
     #get_array(fn)
 
-    #print save_detector(fn)
+    # print save_detector(fn)
 
-    # im = cv2.imread(r'temp\crop001658.png', 0),cv2.imread(r'temp\00001222.png', 0), cv2.imread(r'temp\ssd_0026.jpg',0)
+    # im = cv2.imread(r'temp\frame_ped.png', 0),cv2.imread(r'temp\frame_no.png', 0)
     # svm = SVM()
     # svm.load(fn)
     # hog = HOG(_winSize=(64,128))

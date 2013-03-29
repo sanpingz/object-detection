@@ -23,7 +23,9 @@ PEDESTRIANS = map(lambda x: join(PEDESTRIANS_BASE, x),
         r'CVC-02-Classification\train\positive-rescaled-64x128',
         r'CVC-02-Classification\train\negative-road-rescaled-64x128',
         r'CVC-02-Classification\test\positive-rescaled-64x128',
-        r'CVC-02-Classification\test\negative-road-rescaled-64x128'
+        r'CVC-02-Classification\test\negative-road-rescaled-64x128',
+        r'INRIAPerson\positive-96x160',
+        r'INRIAPerson\negative-96x160',
     ]
 )
 
