@@ -37,7 +37,7 @@ if __name__ == '__main__':
     cz = np.load('cz_detector.npy')
     detector = cv2.HOGDescriptor_getDefaultPeopleDetector(), cz
 
-    hog.setSVMDetector( detector[1] )
+    hog.setSVMDetector( detector[0] )
     tmp = r'temp\frame_ped.png', r'temp\frame_no.png'
     sys.argv = ['detect',tmp[0], tmp[1]]
 

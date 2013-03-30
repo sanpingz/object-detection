@@ -163,11 +163,15 @@ class HOG(Feature):
                    params['_blockSize'][0]*params['_blockSize'][1]/(params['_cellSize'][0]*params['_cellSize'][1])*params['_nbins']
     def process(self, samples, size=None):
         res = []
-        for img in samples:
-            im = cv2.imread(img, 0) if isinstance(img, str) else img
-            print im.shape
-            rs = self.hog.compute(im)
-            res.append(rs.ravel())
+        if isinstance(samples[0], str):
+            for img in samples:
+                im = cv2.imread(img, 0)
+                rs = self.hog.compute(im)
+                res.append(rs.ravel())
+        else:
+            for im in samples:
+                rs = self.hog.compute(im)
+                res.append(rs.ravel())
         return np.float32(res)
 
 
@@ -232,17 +236,28 @@ class Detector(object):
         self.winSize = feature.winSize
 
     @timer
-    def detect(self, img, win_stride=(8,8)):
+    def detect(self, img, win_stride=(8,8), hit_threshold=4):
         samples = []
         H, W = img.shape
         w, h = self.winSize
         assert W > w or H > h, 'detect window is too small'
+        loc = []
         for y in xrange(0,H+1-h,win_stride[1]):
             for x in xrange(0,W+1-w,win_stride[0]):
                 samples.append(img[y:y+h, x:x+w])
+                loc.append((y,x))
+                # fm = '%s\%04d.%s' % (r'temp\stack', num, 'png')
+                # cv2.imwrite(fm, img[y:y+h, x:x+w])
+
         resp = self.model.predict(self.feature.process(samples))
-        print resp.sum(0).sum(0), len(samples)
-        return reduce(lambda x,y: x or y, resp)
+        index =  [i for i, v in enumerate(resp) if v==1]
+        founds = np.int32(loc)[index]
+        for x,y in founds:
+            pad_w, pad_h = int(0.15*w), int(0.05*h)
+            cv2.rectangle(img, (x+pad_w, y+pad_h), (x+w-pad_w, y+h-pad_h), (0, 255, 0), 1)
+            cv2.waitKey()
+        cv2.imshow('demo', img)
+        return founds, len(samples)
     def detectMultiScale(self, img):
         locations = []
 

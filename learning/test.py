@@ -174,12 +174,31 @@ class Array_parser(object):
               parser.alpha
         return dict(zip(parser.keywords, res))
 
+
 def save_detector(fn, dn='cz_detector'):
     sv = Array_parser.run(fn)
     rs = np.dot(sv.get('alpha'),sv.get('support_vectors'))
     rs = np.append(rs, np.array([sv.get('rho')]), 0).reshape((-1, 1))
     np.save(dn, rs)
     return dn
+
+def find_eggs(src_dir, size):
+    def is_equal(t1,t2):
+        if t1[0] == t2[0] and t1[1] == t2[1]:
+            return True
+    for img in os.listdir(src_dir):
+        name = join(src_dir, img)
+        if not is_equal(size, cv2.imread(name,0).shape):
+            print name
+
+
+def fixed_cut(src, dst, o, size):
+    for img in os.listdir(src):
+        fs = join(src, img)
+        fd = join(dst, img)
+        im = cv2.imread(fs)
+        cv2.imwrite(fd, im[o[0]:o[0]+size[0], o[1]:o[1]+size[1]])
+
 
 if __name__ == '__main__':
     # src_dir = r'E:\FavoriteVideo\Images\Original'
@@ -194,31 +213,40 @@ if __name__ == '__main__':
     # src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\test\positive-128x128'
     #cuts(src_dir, (128,128))
 
-    src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\negative'
-    dst_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\negative-96x160'
-    name = 'neg'
-    fmt = 'png'
-    rand_cut(src_dir, dst_dir, name, fmt, (160,96))
+    # src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\negative'
+    # dst_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\negative-96x160'
+    # name = 'neg'
+    # fmt = 'png'
+    # rand_cut(src_dir, dst_dir, name, fmt, (160,96))
 
     # src = get_images(r'E:\FavoriteVideo\Images\org-800x600')
     # dst = r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\postive'
     # FastCut(src, (128,128), dst=dst).run()
 
     #print yaml_adapter('pedestrians.yml')
-    # fn = 'pedestrians.yml'
+    fn = 'pedestrians.yml'
     #get_array(fn)
 
     # print save_detector(fn)
 
-    # im = cv2.imread(r'temp\frame_ped.png', 0),cv2.imread(r'temp\frame_no.png', 0)
-    # svm = SVM()
-    # svm.load(fn)
-    # hog = HOG(_winSize=(64,128))
-    #
-    # print Detector(svm, hog).detect(im[1])
+    im = cv2.imread(r'temp\frame_ped.png', 0),\
+         cv2.imread(r'temp\frame_no.png', 0),\
+         cv2.imread(r'temp\frame_no1.png', 0),\
+         cv2.imread(r'temp\ssd_0282.jpg', 0)
+    svm = SVM()
+    svm.load(fn)
+    hog = HOG(_winSize=(64,128))
+
+    print Detector(svm, hog).detect(im[-1])
 
     # src_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'
     # dst_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'
-    # remap(src_dir, dst_dir, (128,128), 'frame', 'jpg')
+    # remap(src_dir, dst_dir, (128,128), 'frame', 'jpg')\
+
+    # find_eggs(r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\positive-64x128', (128, 64))
+
+    # src_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\negative-96x160'
+    # dst_dir = r'C:\Users\Calvin\PycharmProjects\machine\datasets\pedestrians\INRIAPerson\negative-64x128'
+    # fixed_cut(src_dir, dst_dir, (16,16), (128,64))
 
     cv2.waitKey()
