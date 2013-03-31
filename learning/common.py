@@ -253,9 +253,17 @@ class Detector(object):
         index =  [i for i, v in enumerate(resp) if v==1]
         founds = np.int32(loc)[index]
         for x,y in founds:
-            pad_w, pad_h = int(0.15*w), int(0.05*h)
+            # pad_w, pad_h = int(0.15*w), int(0.05*h)
+            pad_w, pad_h = 0, 0
             cv2.rectangle(img, (x+pad_w, y+pad_h), (x+w-pad_w, y+h-pad_h), (0, 255, 0), 1)
+            cv2.circle(img, (x,y), 1, (0,255,0), 2)
             cv2.waitKey()
+        center, radius = cv2.minEnclosingCircle(founds)
+        fine = []
+        max_r = (max(w, h)+1)/hit_threshold/2
+
+        center = int(center[0]), int(center[1])
+        cv2.circle(img, center, int(radius), (0,255,0), 1)
         cv2.imshow('demo', img)
         return founds, len(samples)
     def detectMultiScale(self, img):
