@@ -232,12 +232,16 @@ if __name__ == '__main__':
     im = cv2.imread(r'temp\frame_ped.png', 0),\
          cv2.imread(r'temp\frame_no.png', 0),\
          cv2.imread(r'temp\frame_no1.png', 0),\
-         cv2.imread(r'temp\ssd_0282.jpg', 0)
+         cv2.imread(r'temp\ssd_0282.jpg', 0),\
+         cv2.imread(r'temp\ssd_2217.jpg', 0),\
+         cv2.imread(r'temp\frame_ped_min.png', 0)
     svm = SVM()
     svm.load(fn)
     hog = HOG(_winSize=(64,128))
 
-    print Detector(svm, hog).detect(im[-1])
+    # print Detector(svm, hog).detect(im[-2])
+
+    Detector(svm, hog).detectMultiScale(im[-2])
 
     # src_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'
     # dst_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'

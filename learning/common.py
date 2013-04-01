@@ -235,12 +235,12 @@ class Detector(object):
         self.feature = feature
         self.winSize = feature.winSize
 
-    @timer
-    def detect(self, img, win_stride=(8,8), hit_threshold=4):
+    # @timer
+    def detect(self, img, win_stride=(8,8), hit_threshold=0.6):
         samples = []
         H, W = img.shape
         w, h = self.winSize
-        assert W > w or H > h, 'detect window is too small'
+        assert W > w and H > h, 'detect window is too small'
         loc = []
         for y in xrange(0,H+1-h,win_stride[1]):
             for x in xrange(0,W+1-w,win_stride[0]):
@@ -248,26 +248,63 @@ class Detector(object):
                 loc.append((y,x))
                 # fm = '%s\%04d.%s' % (r'temp\stack', num, 'png')
                 # cv2.imwrite(fm, img[y:y+h, x:x+w])
-
         resp = self.model.predict(self.feature.process(samples))
-        index =  [i for i, v in enumerate(resp) if v==1]
+        index = [i for i, v in enumerate(resp) if v==1]
         founds = np.int32(loc)[index]
+        # for x,y in founds:
+        #     # pad_w, pad_h = int(0.15*w), int(0.05*h)
+        #     pad_w, pad_h = 0, 0
+        #     cv2.rectangle(img, (x+pad_w, y+pad_h), (x+w-pad_w, y+h-pad_h), (0, 255, 0), 1)
+        #     cv2.circle(img, (x,y), 1, (0,255,0), 2)
+        #     cv2.waitKey()
+        # center, radius = cv2.minEnclosingCircle(founds)
+        def overlap(rect1, rect2, size=(h,w)):
+            start = min(rect1[0], rect2[0]), min(rect1[1], rect2[1])
+            end = max(rect1[0], rect2[0])++size[0], max(rect1[1], rect2[1])++size[1]
+            scale = 2*size[0] - (end[0]-start[0]), 2*size[1] - (end[1]-start[1])
+            area = 0 if scale[0]<0 or scale[1]<0 else scale[0]*scale[1]
+            return float(area)/(size[0]*size[1])
+        num = 1
+        dct = {}
+        # print founds
         for x,y in founds:
-            # pad_w, pad_h = int(0.15*w), int(0.05*h)
-            pad_w, pad_h = 0, 0
-            cv2.rectangle(img, (x+pad_w, y+pad_h), (x+w-pad_w, y+h-pad_h), (0, 255, 0), 1)
-            cv2.circle(img, (x,y), 1, (0,255,0), 2)
-            cv2.waitKey()
-        center, radius = cv2.minEnclosingCircle(founds)
+            # cv2.circle(img, (y,x), 1, (0,255,0), 2)
+            if dct:
+                flag = True
+                for key in dct.keys():
+                    v = dct[key]
+                    rs = filter(lambda m: overlap((m[0],m[1]), (x,y))<1-hit_threshold, v)
+                    if not rs:
+                        v.append([x,y])
+                        dct[key] = v
+                        flag = False
+                if flag:
+                    dct[num] = [[x,y]]
+                    num += 1
+            else:
+                dct[num] = [[x,y]]
+                num += 1
         fine = []
-        max_r = (max(w, h)+1)/hit_threshold/2
-
-        center = int(center[0]), int(center[1])
-        cv2.circle(img, center, int(radius), (0,255,0), 1)
-        cv2.imshow('demo', img)
-        return founds, len(samples)
-    def detectMultiScale(self, img):
+        for key in dct.keys():
+            c, r = cv2.minEnclosingCircle(np.int32(dct[key]))
+            c = int(c[0]+0.5), int(c[1]+0.5)
+            fine.append(list(c))
+        # center = int(center[0]), int(center[1])
+        # cv2.circle(img, center, int(radius), (0,255,0), 1)
+        # for x,y in fine:
+        #     # cv2.rectangle(img, (y, x), (y+w, x+h), (0, 255, 0), 1)
+        #     cv2.imwrite(join(r'temp\stack', str(y)+str(x)+'.png'), img[x:x+h, y:y+w])
+        # cv2.imshow(str(W), img)
+        return fine
+    @timer
+    def detectMultiScale(self, img, hit_threshold=0.6, win_stride=(8,8), padding=(32,32), scale=0.95, group_threshold=2):
         locations = []
-
-def detectMultiScale(img, found_locations, hit_threshold=0, win_stride=(8,8), padding=(32,32), scale=1.05, group_threshold=2): pass
-
+        H, W = img.shape
+        w, h = self.winSize
+        t = max(float(h)/H, float(w)/W)
+        sequence = [0.95**x for x in range(100) if 0.95**x >t]
+        for s in sequence:
+            im = cv2.resize(img, (int(s*W+0.5),int(s*H+0.5)), interpolation=cv2.INTER_CUBIC)
+            if self.detect(im):
+                locations.append(self.detect(im))
+        print locations
