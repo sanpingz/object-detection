@@ -19,7 +19,7 @@ def train(model, feature, fn, pos, neg):
 @timer
 def test(model, feature, fn, pos=None, neg=None):
     model.load(fn)
-    if not (pos and neg):
+    if not (pos or neg):
         print 'Samples are required'
         exit()
     if pos:
@@ -94,9 +94,10 @@ class Best_Params(object):
 if __name__ == '__main__':
     print __doc__
     ped_pos = (
-        get_images(PEDESTRIANS[0]),
+        get_images(PEDESTRIANS[0]),   # CVC
         get_images(PEDESTRIANS[4]),
-        get_images(PEDESTRIANS[7])
+        get_images(PEDESTRIANS[7]),   # INRIA
+        get_images(PEDESTRIANS[9])    # CBCL
     )
     ped_neg = (
         get_images(PEDESTRIANS[1]) + get_images(PEDESTRIANS[2]) + get_images(PEDESTRIANS[3]),
@@ -108,7 +109,7 @@ if __name__ == '__main__':
         get_images(CARS[2])
     )
     car_neg = (
-        get_images(CARS[1]),
+        get_images(CARS[1]) + get_images(CARS[4]),
         get_images(CARS[3])
     )
     fn = [ PEDESTRIANS_FN, CARS_FN ]
@@ -128,7 +129,7 @@ if __name__ == '__main__':
     # test(model, feature, fn, pos=None, neg=None)
 
     execute(train, svm, hog, fn[0], ped_pos[0], ped_neg[0])
-    # execute(test, SVM(), hog, fn[0], ped_pos[1], ped_neg[1])
+    # execute(test, SVM(), hog, fn[0], ped_pos[3], [])
 
     # execute(train, svm, hog, fn[1], car_pos[0], car_neg[0])
     # execute(test, SVM(), hog, fn[1], car_pos[1], car_neg[1])

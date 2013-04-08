@@ -6,6 +6,7 @@ from os.path import join
 import cv2
 import numpy as np
 from numpy.linalg import norm
+from multiprocessing.pool import ThreadPool
 import yaml, re
 
 def get_images(path):
@@ -14,7 +15,6 @@ def get_images(path):
         ls = os.listdir(path)
     else:
         print 'No images found at %s' % path
-        exit()
     return ls and map(lambda x: join(path, x), ls)
 
 
@@ -32,6 +32,12 @@ def timer(func):
         print "Timer: %.4fs" % (time.time()-start)
         return back
     return newFunc
+
+
+def multi_thread(f, jobs):
+    pool = ThreadPool(processes=cv2.getNumberOfCPUs())
+    ires = pool.imap_unordered(f, jobs)
+    return ires
 
 
 def resize_scale(src_dir, dst_dir, size, fmt, name, start=1):
@@ -180,6 +186,7 @@ def preprocess(pos, neg, feature):
     labels = np.append(np.ones(len(pos), np.int32), np.zeros(len(neg), np.int32))
     shuffle = np.random.permutation(len(samples))
     return samples[shuffle], labels[shuffle]
+    # return samples, labels
 
 
 def preprocess_hog(digits):
@@ -235,8 +242,33 @@ class Detector(object):
         self.feature = feature
         self.winSize = feature.winSize
 
+    @staticmethod
+    def overlap(rect1, rect2, size):
+        start = min(rect1[0], rect2[0]), min(rect1[1], rect2[1])
+        end = max(rect1[0], rect2[0])+size[0], max(rect1[1], rect2[1])+size[1]
+        scale = 2*size[0] - (end[0]-start[0]), 2*size[1] - (end[1]-start[1])
+        area = 0 if scale[0]<0 or scale[1]<0 else scale[0]*scale[1]
+        return float(area)/(size[0]*size[1])
+    @staticmethod
+    def overlap_area(rect1, rect2):
+        sx1,sy1,ex1,ey1 = rect1
+        sx2,sy2,ex2,ey2 = rect2
+        start = min(sx1, sx2), min(sy1, sy2)
+        end = max(ex1, ex2), min(ey1, ey2)
+        lap = (ex1-sx1) + (ex2-sx2) - (end[0]-start[0]), (ey1-sy1) + (ey2-sy2) - (end[1]-start[1])
+        area = 0 if lap[0]<0 or lap[1]<0 else lap[0]*lap[1]
+        small = min((ex1-sx1)*(ey1-sy1), (ex2-sx2)*(ey2-sy2))
+        return float(area)/small
+    @staticmethod
+    def area(rect):
+        return (rect[2]-rect[0])*(rect[3]-rect[1])
+    @staticmethod
+    def draw_rectangle(im, rects, color=(0,255,0),thickness=1):
+        for rect in rects:
+            cv2.rectangle(im, tuple(rect[:2]), tuple(rect[2:]), color=color, thickness=thickness)
+
     # @timer
-    def detect(self, img, win_stride=(8,8), hit_threshold=0.6):
+    def detect(self, img, win_stride=(8,8), hit_threshold=0.6, debug=False):
         samples = []
         H, W = img.shape
         w, h = self.winSize
@@ -248,6 +280,7 @@ class Detector(object):
                 loc.append((y,x))
                 # fm = '%s\%04d.%s' % (r'temp\stack', num, 'png')
                 # cv2.imwrite(fm, img[y:y+h, x:x+w])
+        # print (H,W), len(samples)
         resp = self.model.predict(self.feature.process(samples))
         index = [i for i, v in enumerate(resp) if v==1]
         founds = np.int32(loc)[index]
@@ -258,12 +291,18 @@ class Detector(object):
         #     cv2.circle(img, (x,y), 1, (0,255,0), 2)
         #     cv2.waitKey()
         # center, radius = cv2.minEnclosingCircle(founds)
-        def overlap(rect1, rect2, size=(h,w)):
-            start = min(rect1[0], rect2[0]), min(rect1[1], rect2[1])
-            end = max(rect1[0], rect2[0])++size[0], max(rect1[1], rect2[1])++size[1]
-            scale = 2*size[0] - (end[0]-start[0]), 2*size[1] - (end[1]-start[1])
-            area = 0 if scale[0]<0 or scale[1]<0 else scale[0]*scale[1]
-            return float(area)/(size[0]*size[1])
+
+        if debug:
+            dr = r'temp\stack'
+            if os.path.isdir(dr):pass
+            # __import__('shutil').rmtree(dr)
+            else:
+                os.makedirs(dr)
+            for x,y in founds:
+                # cv2.rectangle(img, (y, x), (y+w, x+h), (0, 255, 0), 1)
+                cv2.imwrite(join(dr, '%sx%s.png' % (y,x)), img[x:x+h, y:y+w])
+                # cv2.imshow(str(W), img)
+
         num = 1
         dct = {}
         # print founds
@@ -273,11 +312,12 @@ class Detector(object):
                 flag = True
                 for key in dct.keys():
                     v = dct[key]
-                    rs = filter(lambda m: overlap((m[0],m[1]), (x,y))<1-hit_threshold, v)
+                    rs = filter(lambda m: Detector.overlap((m[0],m[1]), (x,y), size=(h,w))<1-hit_threshold, v)
                     if not rs:
                         v.append([x,y])
                         dct[key] = v
                         flag = False
+                        break
                 if flag:
                     dct[num] = [[x,y]]
                     num += 1
@@ -291,20 +331,67 @@ class Detector(object):
             fine.append(list(c))
         # center = int(center[0]), int(center[1])
         # cv2.circle(img, center, int(radius), (0,255,0), 1)
-        # for x,y in fine:
-        #     # cv2.rectangle(img, (y, x), (y+w, x+h), (0, 255, 0), 1)
-        #     cv2.imwrite(join(r'temp\stack', str(y)+str(x)+'.png'), img[x:x+h, y:y+w])
-        # cv2.imshow(str(W), img)
         return fine
+
     @timer
-    def detectMultiScale(self, img, hit_threshold=0.6, win_stride=(8,8), padding=(32,32), scale=0.95, group_threshold=2):
-        locations = []
+    def detectMultiScale(self, img, hit_threshold=0.6, win_stride=(8,8), scale=0.95, group_threshold=0.72, debug=False, fit=False, resize=(0.75, 0.85)):
         H, W = img.shape
         w, h = self.winSize
         t = max(float(h)/H, float(w)/W)
-        sequence = [0.95**x for x in range(100) if 0.95**x >t]
+        # sequence = [scale**x for x in range(50) if scale**x >t]
+        levels = int(np.log10(t)/np.log10(scale))+1
+        # print levels
+        sequence = [scale**x for x in range(levels)]
+
+        # rule = (np.divide(np.float32([[w,h]]*len(sequence)), sequence)+0.5).astype(np.int32)
+        locations = []
+
+        # #muti-thread
+        # ims = [cv2.resize(img, (int(s*W+0.5),int(s*H+0.5)), interpolation=cv2.INTER_CUBIC) for s in sequence]
+        # # fines = [self.detect(im, win_stride=win_stride, hit_threshold=hit_threshold, debug=debug) for im in ims]
+        # fines = multi_thread(self.detect, ims)
+        # for fine in fines:
+        #     if fine:
+        #         # fine = np.int32(np.int32(fine)/s+0.5)
+        #         tmp = []
+        #         for x,y in fine:
+        #             # cv2.rectangle(img, (int(y/s+0.5), int(x/s+0.5)), (int((y+w)/s+0.5), int((x+h)/s+0.5)), (0, 255, 0), 1)
+        #             tmp.append([int(y/s+0.5),int(x/s+0.5),int((y+w)/s+0.5),int((x+h)/s+0.5)])
+        #         locations.append(tmp)
+
         for s in sequence:
             im = cv2.resize(img, (int(s*W+0.5),int(s*H+0.5)), interpolation=cv2.INTER_CUBIC)
-            if self.detect(im):
-                locations.append(self.detect(im))
-        print locations
+            fine = self.detect(im, win_stride=win_stride, hit_threshold=hit_threshold, debug=debug)
+            if fine:
+                # fine = np.int32(np.int32(fine)/s+0.5)
+                tmp = []
+                for x,y in fine:
+                    # cv2.rectangle(img, (int(y/s+0.5), int(x/s+0.5)), (int((y+w)/s+0.5), int((x+h)/s+0.5)), (0, 255, 0), 1)
+                    tmp.append([int(y/s+0.5),int(x/s+0.5),int((y+w)/s+0.5),int((x+h)/s+0.5)])
+                locations.append(tmp)
+
+        # print locations
+        founds = []
+        for group in locations:
+            for rect in group:
+                if founds:
+                    flag = True
+                    for i in range(len(founds)):
+                        if Detector.overlap_area(rect,founds[i])>=group_threshold:
+                            # founds[i] = (Detector.area(rect) > Detector.area(founds[i])) and rect or founds[i]
+                            founds[i] = [(o+n)/2 for o,n in zip(rect,founds[i])]
+                            flag = False
+                            break
+                    if flag:
+                        founds.append(rect)
+                else:
+                    founds.append(rect)
+        if fit and founds:
+            for i in range(len(founds)):
+                ix, iy, ax, ay = founds[i]
+                delta_x = int((ax-ix)*(1-resize[0])/2+0.5)
+                delta_y = int((ay-iy)*(1-resize[1])/2+0.5)
+                founds[i] = [ix+delta_x, iy+delta_x, ax-delta_x, ay-delta_y]
+        # Detector.draw_rectangle(img, founds)
+        # cv2.imshow('dem', img)
+        return founds

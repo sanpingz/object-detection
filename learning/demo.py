@@ -100,10 +100,10 @@ def yaml_adapter(fn):
         finally:
             tmp.close()
     return rn
-        # lines = lines.replace(':', ': ')
-        # print 'replace finished'
-        # dataMap = yaml.load(lines)
-        # print dataMap.get('my_svm').get('sv_total')
+    # lines = lines.replace(':', ': ')
+    # print 'replace finished'
+    # dataMap = yaml.load(lines)
+    # print dataMap.get('my_svm').get('sv_total')
 
 def get_array(fn):
     with open(fn) as f:
@@ -169,7 +169,7 @@ class Array_parser(object):
         parser.support_vectors = np.array(parser.support_vectors).reshape((parser.sv_total, -1))
         parser.alpha = np.array(parser.alpha)
         res = parser.var_count, parser.sv_total, \
-              parser.support_vectors,\
+              parser.support_vectors, \
               parser.rho, \
               parser.alpha
         return dict(zip(parser.keywords, res))
@@ -229,19 +229,37 @@ if __name__ == '__main__':
 
     # print save_detector(fn)
 
-    im = cv2.imread(r'temp\frame_ped.png', 0),\
-         cv2.imread(r'temp\frame_no.png', 0),\
-         cv2.imread(r'temp\frame_no1.png', 0),\
-         cv2.imread(r'temp\ssd_0282.jpg', 0),\
-         cv2.imread(r'temp\ssd_2217.jpg', 0),\
-         cv2.imread(r'temp\frame_ped_min.png', 0)
+    fc = 'cars.yml'
+    img = [
+        r'temp\frame_ped.png',
+        r'temp\frame_no.png',
+        r'temp\frame_no1.png',
+        r'temp\ssd_0282.jpg',
+        r'temp\ssd_2217.jpg',
+        r'temp\person_236_min.png',
+        r'temp\person_236.png',
+        r'temp\person_265.png',
+        r'temp\201939.png',
+        r'temp\21376.jpg',
+        r'temp\frame_ped_min.png'
+    ]
+    car = [
+        r'temp\frame0000.png',
+        r'temp\frame0073.png',
+        r'temp\frame0041.png'
+    ]
     svm = SVM()
     svm.load(fn)
     hog = HOG(_winSize=(64,128))
-
-    # print Detector(svm, hog).detect(im[-2])
-
-    Detector(svm, hog).detectMultiScale(im[-2])
+    im = cv2.imread(img[-3])
+    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    # print Detector(svm, hog).detect(gray, debug=True)
+    founds = Detector(svm, hog).detectMultiScale(gray, debug=False, fit=True, win_stride=(16,16),scale=0.95)
+    # founds = Detector(svm, hog).detectMultiScale(gray, debug=False, fit=True, resize=(0.72,0.72), group_threshold=0.5)
+    Detector.draw_rectangle(im, founds, thickness=2)
+    # print '%d found' % len(founds)
+    cv2.putText(im, '%d found'%len(founds), (10, 20), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 250), thickness = 1)
+    cv2.imshow('demo', im)
 
     # src_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'
     # dst_dir=r'C:\Users\Calvin\PycharmProjects\machine\datasets\cars\CZ\positive-128x128'

@@ -14,7 +14,8 @@ CARS = map(lambda x: join(CARS_BASE, x),
         r'CZ\positive-128x128',
         r'CZ\negative-128x128',
         r'CBCL-positive-128x128',
-        r'CZ\negative-web-128x128'
+        r'CZ\negative-web-128x128',
+        r'CZ\negative-false-128x128'
     ]
 )
 
@@ -29,6 +30,7 @@ PEDESTRIANS = map(lambda x: join(PEDESTRIANS_BASE, x),
         r'CVC-02-Classification\test\negative-sliding-rescaled-64x128',
         r'INRIAPerson\positive-64x128',
         r'INRIAPerson\negative-64x128',
+        r'CBLC-positive-64x128'
     ]
 )
 

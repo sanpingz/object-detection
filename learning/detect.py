@@ -38,8 +38,12 @@ if __name__ == '__main__':
     detector = cv2.HOGDescriptor_getDefaultPeopleDetector(), cz
 
     hog.setSVMDetector( detector[0] )
-    tmp = r'temp\frame_ped.png', r'temp\frame_no.png'
-    sys.argv = ['detect',tmp[0], tmp[1]]
+    tmp = [
+        r'temp\frame_ped.png',
+        r'temp\frame_no.png',
+        r'temp\201939.png'
+    ]
+    sys.argv = ['detect',tmp[0], tmp[1], tmp[2]]
 
     for fn in it.chain(*map(glob, sys.argv[1:])):
         print fn, ' - ',
