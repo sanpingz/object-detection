@@ -1,4 +1,4 @@
-machine
+Machine Learning
 =======
 
-machine learning
+Machine Learning based on SVM and HOG, only for object detection
